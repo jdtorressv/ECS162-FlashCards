@@ -3,7 +3,7 @@
 const APIrequest = require('request');
 const http = require('http');
 
-const APIkey = none;  // ADD API KEY HERE
+const APIkey = AIzaSyBmy2oxvsm784oHnFrBT50Slm5T3yYAJLw;  // ADD API KEY HERE
 const url = "https://translation.googleapis.com/language/translate/v2?key="+APIkey
 
 // An object containing the data expressing the query to the
@@ -40,7 +40,7 @@ APIrequest(
 	if ((err) || (APIresHead.statusCode != 200)) {
 	    // API is not working
 	    console.log("Got API error");
-	    console.log(body);
+	    console.log(APIresBody);
 	} else {
 	    if (APIresHead.error) {
 		// API worked but is not giving you data
