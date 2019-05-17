@@ -1,0 +1,55 @@
+directory for project: home dir -> server -> public
+server -- contains server.js
+public -- contains static files: html, css, and js files for browser
+     server automatically serves any file in public
+
+why is it bad to have files in server dir, not public dir
+- a user would be able to access your server code, we don't want them to see
+
+create a table in DB -- 'CREATE TABLE Flashcards (user INT, input TEXT,
+                           response TEXT, num_seen INT, num_correct INT)'
+can delete a table in DB -- 'DROP TABLE flashcards'
+
+never past user input into SQL command -- might have malicious text
+- similar to why we don't use 'innerHTML'
+this is called SANITIZATION
+
+Santizing inputs -- send to server
+INSERT into Flashcards(user, english, korean, seen,
+             correct) VALUES(1, @0, @1, 0, 0)
+^ checks that values supplied for the params have correct type (@0, @1)
+Should check in code to make sure input is not too long
+
+Code:
+const cmdStr = 'INSERT into Flashcards(user,english,korean,seen,correct)
+                         VALUES(1,@0,@1,0,0)'
+db.run(cmdStr, eng, kor, insertCallback);
+
+function insertCallback(err){
+   if(err){ console.log(err); }
+   else{ console.log("Successfully stored flashcard") }
+}
+
+How to access elements in table
+'SELECT * FROM Flashcards' -- whole table
+'SELECT columns FROM table WHERE Boolean'
+WHERE:
+WHERE seen < 3
+WHERE seen < 3 and correct < 1
+WHERE googleid = 587302830 -- when we implement userid/passwords
+
+db.get('SELECT * FROM Flashcards WHERE user = 1', arrayCallback);
+
+function arrayCallback(err, arrayData){
+   if(err){ console.log("error:",err, "\n"); }
+   else{ console.log("array:", arrayData, "\n"); }
+}
+arrayData -- contains an array of objects, each object contains one row
+
+Changing a row
+'UPDATE Flashcards SET seen = 1 WHERE rowid = 73'
+WARNING: omitting WHERE changes all the slected column in all rows
+use = not == in both SET and WHERE
+
+if u call db.run() and then db.get(), might not output correct values
+- depends if the update finished before the db.get() command -- asynchronous

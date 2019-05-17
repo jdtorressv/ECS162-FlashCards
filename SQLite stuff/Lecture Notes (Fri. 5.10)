@@ -1,0 +1,33 @@
+Notes from lecture 5/10 on Databases
+
+When user hits enter, asking for the translation
+browser sends AJAX req with English
+server sends HTTP req with English to Cloud Translate API, waits for res
+When API comes back, server sends res to the browser
+
+browser sends AJAX request when press 'save'
+in AJAX -- includes english and spanish to be saved in DB
+server communicates with DB to save the flashcard in the table
+database confirms data is stored, tells server it worked, server tells
+   browser that it worked
+
+Databases -- used for large amounts of data
+data is retrieved by an index, not just reading through the entire file
+   index -- can be alphabetical, hash table, etc.
+
+SQLite -- not really for huge amounts of data, good for this project
+sqlite3 -- Node module interfacting to SQLite
+SQLite -- saves data in a single file in server directory. Uses its own
+   file access techniques to minimize time to find an element
+
+SQL -- declarative language: specify what you want, not the computations the
+   database should use to do it
+made of tables -- similar to a spreadsheet
+
+Database set up -- set up ONCE, before server runs. -- not part of server
+Data in file that we set up remains on disk, even when server is off
+
+Every SQL command to db, must specify callback function even if no response
+   to check for errors, or lack there of
+Why not just wait for command to return?
+   -might take a long time - bad b/c browser is constantly sending http req
