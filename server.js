@@ -69,6 +69,12 @@ function getTranslation(res){
   // const app = express()
 }
 
+function fileNotFound(){
+  let url = req.url;
+  res.type('text/plain');
+  res.status(404);
+  res.send('Cannot find '+url);
+}
 
 const app = express();
 app.use(express.static('public'));  // can I find a static file?
