@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link href="https://fonts.googleapis.com/css?family=Raleway:400,900" rel="stylesheet">
+    </head>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+.row{
+  display: flex;
+}
+
+/* Create two equal columns that floats next to each other */
+.column {
+  flex: 50%;
+  padding: 10px;
+  height: 100vh; /* Should be removed. Only for demonstration */
+}
+
+.welcome {
+  align-items:center;
+  text-align: center;
+  margin-top: 50%;
+}
+
+.signin {
+  align-items:center;
+  text-align: center;
+  margin-top: 50%;
+}
+
+h2{
+  color: white;
+  font-size: 30pt;
+}
+
+h3{
+  color: #606B9B;
+  font-size: 30pt;
+}
+
+#box-button{
+  display: flex;
+  padding-top: 2vh;
+  align-content: center;
+}
+
+#input-section{
+    display: flex;
+    flex-direction: column;
+}    
+</style>
+
+<body>
+
+<div class="row">
+  <div class="column" style="background-color:#606B9B;">
+    <div class="welcome">
+      <h2>Welcome to Lango!</h2>
+        <div class="welcome2">
+          <p>Customize your vocabulary</p>
+        </div>
+    </div>
+  </div>
+  <div class="column" style="background-color:#white;">
+    <div class="signin">
+      <h3>Sign in to Lango!</h3>
+      <div id="input-section">
+          <div id="name-button">
+              <input type="text" id="choose-name" autocomplete="off" value="Name">
+          </div>
+          <div id="email-button">
+              <input type="text" id="choose-email" autocomplete="off" value="Email">
+          </div>
+          
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
+
