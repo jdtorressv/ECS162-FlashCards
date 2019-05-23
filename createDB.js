@@ -12,7 +12,7 @@ const db = new sqlite3.Database(dbFileName);  // object, not database.
 // If the table already exists, causes an error.
 // Fix the error by removing or renaming Flashcards.db
 // When creating table, by default adds 'rowid' with 1, 2, ... -- to quickly access index
-const cmdStr = 'CREATE TABLE Flashcards (userid INT, input TEXT, output TEXT, num_seen INT, num_correct INT)'
+const cmdStr = 'CREATE TABLE Flashcards (userid INTEGER, input TEXT, output TEXT, num_seen INTEGER, num_correct INTEGER)'
 db.run(cmdStr,tableCreationCallback);
 
 // Always use the callback for database operations and print out any

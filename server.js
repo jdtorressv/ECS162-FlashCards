@@ -11,16 +11,20 @@ const APIrequest = require('request');
 const http = require('http');
 
 const APIkey = 'AIzaSyBmy2oxvsm784oHnFrBT50Slm5T3yYAJLw';
-// const url = "https://translation.googleapis.com/language/translate/v2?key="+APIkey;
+const url = "https://translation.googleapis.com/language/translate/v2?key="+APIkey;
+
+let reqObj = {
+      "source": "en", // User can't change language settings from browser -- Eng -> anything
+      "target": "es", //can be any language here from their list
+      "q": "" 
+    };
 
 function translateHandler(req, res, next) {
-    let url = req.url;
+    let requrl = req.url;
     let qObj = req.query;
-    let reqObj = {
-      "source": "en", // User can't change language settings from browser -- Eng -> anything
-      "target": "ko", //can be any language here from their list
-      "q": qObj.english
-    };
+    let list = requrl.split("=");
+    let input = list[1];
+    reqObj.q = input;
 
     getTranslation(res);
 
@@ -69,7 +73,7 @@ function getTranslation(res){
   // const app = express()
 }
 
-function fileNotFound(){
+function fileNotFound(req, res){
   let url = req.url;
   res.type('text/plain');
   res.status(404);
@@ -80,7 +84,6 @@ const app = express();
 app.use(express.static('public'));  // can I find a static file?
 // Method: 'GET'
 app.get('/translate', translateHandler);   // if not, go next
-app.use( fileNotFound );            // otherwise not found
 // Method: 'POST'
 app.post('/store', saveFlashcard);
 app.use( fileNotFound );
@@ -99,10 +102,15 @@ function dumpDB() {
 // onclick function
 function saveFlashcard(req, res, next){
   let qObj = req.query;
-  let input = qObj.english;
-  let output = qObj.korean;
-  if(qObj != undefined){
-    let cmdStr = 'INSERT into Flashcards(userid,input,output,num_seen,num_correct) VALUES(1,?,?,0,0)';
+  let requrl = req.url;
+  let inout = requrl.split("=");
+  let inp = inout[1].split("&");
+  let input = inp[0];
+  let output = inout[2];
+  console.log(input, output);
+
+  if(input != undefined){
+    let cmdStr = 'INSERT into Flashcards  VALUES(1,?,?,0,0)';
     db.run(cmdStr, [input, output], insertCallback);
     res.send("Successfully inserted.");
   }
