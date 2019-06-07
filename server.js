@@ -3,20 +3,47 @@
 
 const sqlite3 = require('sqlite3');
 const db = new sqlite3.Database('Flashcards.db');
-
 const express = require('express');
 const port = 57443; // you need to put your port number here
-
 const APIrequest = require('request');
 const http = require('http');
-
 const APIkey = 'AIzaSyBmy2oxvsm784oHnFrBT50Slm5T3yYAJLw';
 const url = "https://translation.googleapis.com/language/translate/v2?key="+APIkey;
+const app = express();
+
+const clID = '';
+const clSecret = '';
+
+const googleLoginData = {
+    clientID: clID,
+    clientSecret: clSecret,
+    callbackURL: '/auth/redirect'
+  };
+
+const cookieSession = require('cookie-session');
+const passport = require('passport');
+const authRoutes = require('./routes/auth-routes.js');
+const profileRoutes = require('./routes/profile-routes.js');
+const passportSetup = require('./config/passport-setup.js');
+const keys = require('./config/keys');
+
+// cookie stage
+app.use(cookieSession({
+    maxAge: 6*60*60*1000,
+    keys:[keys.session.cookieKey]
+  })); // how long server remembers cookie (6 hrs), what is the key signature
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+// set up routes
+app.use('/auth', authRoutes);
+app.use('/profile', profileRoutes);
 
 let reqObj = {
       "source": "en", // User can't change language settings from browser -- Eng -> anything
       "target": "es", //can be any language here from their list
-      "q": "" 
+      "q": ""
     };
 
 function translateHandler(req, res, next) {
@@ -80,7 +107,31 @@ function fileNotFound(req, res){
   res.send('Cannot find '+url);
 }
 
-const app = express();
+// Return code: 302
+function gotProfile(accessToken, refreshToken, profile, done){
+  console.log("Google profile ", profile);
+  let insert = 'INSERT into Users VALUES(?, ?, ?)'
+
+  db.run(insert, [profile.id, profile.givenName, profile.familyName], insertCallback);
+  let dbRowID = 1;
+  done(null, dbRowID);
+}
+
+function serializeUser(user, done){
+  done(null, user.id);
+}
+
+function deSerializeUser(user, done){
+  User.findById(id, function(err, user){
+    done(err, user);
+  });
+}
+
+app.use(passport.initialize()); // initializes req for next passport stages
+app.use(passport.session()); // attach user info to req in req.user. calls deserializeUser -- takes info out of database based on userID
+app.get('/auth/google', passport.authenticate('google', { scope: /*profile*/ }));
+passport.use(new GoogleStrategy(googleLoginData, gotProfile));
+
 app.use(express.static('public'));  // can I find a static file?
 // Method: 'GET'
 app.get('/translate', translateHandler);   // if not, go next
@@ -93,6 +144,35 @@ app.listen(port, function (){console.log('Listening...');} );
 
 
 /***** Requests to the datdabase ****/
+
+function insertUser() {
+  let insert = 'INSERT into Users VALUES(?, ?, ?)';
+  db.get(insert, [googleid], function(err, rowData){
+    if(rowData){
+      Console.log("User exists");
+      done(null);
+    }
+    else{
+      Console.log("User inserted into databse");
+      done(null);
+    }
+  })
+}
+
+function checkUser() {
+  check = 'SELECT * FROM Users WHERE googleid ='+profile.id;
+  db.get(check, function checkCallback(err, rowData){
+    if(err){
+      console.log("Check Error: "+err);
+    }
+    else if(rowData.length == 0){
+      console.log("No user data");
+    }
+    else {
+      console.log("Checked Correctly");
+    }
+  })
+}
 
 function dumpDB() {
     db.all ( 'SELECT * FROM Flashcards', dataCallback);
