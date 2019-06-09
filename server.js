@@ -187,26 +187,42 @@ function isAuthenticated(req, res, next) {
 function updateSeen(req, res, next){
 	if(req.query.id != undefined){
 		console.log("card id" + req.query.id);
-		let cardID = req.query.id;
-		let shown = 0;
-		const sql1 = 'SELECT * FROM Flashcards WHERE userid = ?';
-		db.get(sql1, [cardID], (err, row)=>{
+		let cardID = req.dbRowID;
+		let seen = 0;
+		const select = 'SELECT * FROM Flashcards WHERE userid = ?';
+		db.get(select, [cardID], (err, rows)=>{
 			if(err) {
 				console.log("updateSeen Error", err);
 				// throw err;
 			}
 			if(row) {
-				console.log(row.num_seen);
+				let test = true;
+				let i = 0;
+				let spanish = '';
+         			let english = '';
+				let score = 0;       
+				let math = 0;
+
+         			while(test) {
+                 		score=(max(1,5-rows[i].num_correct)+max(1,5-rows[i].num_seen)+5*((rows[i].num_seen-rows[i].num_correct)rows[i].num_seen    ));
+			                math = Math.floor(Math.random() * 15);
+                 			if(math <= score){
+						test = false;
+						seen = rows[i].num_seen + 1;
+						
+						let update = 'UPDATE Flashcards SET num_seen = ? WHERE input = ?';
+						db.run(update, [seen, english], (err) => {
+							if(err){
+								throw err;
+							}
+							console.log("Updated Seen");
+							res.send();
+						});
+					}
+					else{ i = i + 1; }
+				}
 			}
-			shown = row.numShown + 1;
-			console.log("shown is " + shown);
-			let sql = 'UPDATE Flashcards SET num_seen = ? WHERE userid = ?';
-			db.run(sql, [shown,cardID], (err, rows)=>{
-			if(err) {
-				console.log("updateSeen Error", err);
-				// throw err;
-			}
-			res.json("success for shown");});			
+			res.send();});			
 		});
 	} else {
 		console.log("id is undefined");
@@ -225,7 +241,7 @@ function updateCorrect(req, res, next){
 				// throw err;
 			}
 			if(row) {
-				console.log("this is the row "+ row.numCorrect);
+				console.log("this is the row "+ row.num_correct);
 			}
 			correct = row.numCorrect + 1;
 			let sql = 'UPDATE flashcards SET numCorrect = ? WHERE userid = ?';

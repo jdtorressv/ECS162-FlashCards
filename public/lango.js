@@ -2,6 +2,7 @@
 // An element to go into the DOM
 
 // let cards = {};
+let scores = [][];
 let username = '';
 
 let lango = React.createElement(
@@ -125,16 +126,36 @@ function checkCorrect(event) {
 		let input = document.getElementById("answerBox").value;
 		let answer = document.getElementById("output").textContent;
 		if(input == answer){
+			
 			// flip card and display correct and update correct
 		}
 		else {
-			// flip card and show nothing
+			// flip card and show answer
 		}
 	}
 }
 
 function nextCard() {
-		
+	let test = true;
+	let i = 0;
+	let spanish = '';
+	let english = '';
+	let score = 0;
+	let math = 0;	
+
+	while(test) {
+		score=(max(1,5-cards[i].num_correct)+max(1,5-cards[i].num_seen)+5*((cards[i].num_seen-cards[i].num_correct)/cards[i].num_seen));
+		math = Math.floor(Math.random() * 15);
+		if(math <= score){
+			document.getElementById("input").value = cards[i].output;
+			document.getElementById("output").textContent = cards[i].input;
+			cards[i].num_seen = cards[i].num_seen + 1;
+			test = false;
+		}
+		else{
+			i = i + 1;
+		}
+	}
 }
 
 function createCORSRequest(method, url) {
@@ -195,7 +216,7 @@ function setUsername() {
 	}
 	xhr.onload = function() {
 		let temp = JSON.parse(xhr.responseText);
-		// console.log(temp);
+		console.log(temp[1].firstname);
 		// username = temp[1].firstname;
 		document.getElementById('username').textContent = temp[1].firstname;
 	}
@@ -210,8 +231,9 @@ function toStartReview() {
 		alert('CORS not supported');
 	}
 	xhr.onload = function() {
-		cards = xhr.responseJSON;
+		cards = JSON.parse(xhr.responseText);
 		console.log("cards: ", cards);
+		nextCard();
 	}
 	xhr.onerror = function() {
 		alert('Error');
