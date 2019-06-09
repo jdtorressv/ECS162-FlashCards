@@ -70,7 +70,7 @@ body {
     vertical-align: middle;
 }
 
-.answerCard {
+#answerCard {
   float: left;
   display:none;
   border-style: solid;
@@ -80,12 +80,16 @@ body {
   margin-left: 10%;
   width: 80%;
   height: 300px;
-  flex:1;
   align-items: center;
   justify-content: center;
 }
 
 #frontCard {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 80%;
+  height: 300px;
   position: absolute;
   -webkit-transform: perspective(600px) rotateY(0deg);
   transform: perspective(600px) rotateY(0deg);
@@ -97,7 +101,17 @@ body {
   transition: transform .5s linear 0s;
 }
 
+#frontText {
+  height: auto;
+  width: auto;
+  text-align: center;
+  vertical-align: middle;
+}
+
 #backCard {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   position: absolute;
   -webkit-transform: perspective(600px) rotateY(180deg);
   transform: perspective(600px) rotateY(180deg);

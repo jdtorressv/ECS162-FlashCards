@@ -1,6 +1,6 @@
 'use strict';
 
-let card = {};
+var card = {};
 
 let lango = React.createElement(
 	"h1",
@@ -34,7 +34,6 @@ function FirstInputCard() {
 	return React.createElement(
 		"div",
 		{ id: "textCard" },
-		React.createElement(createFlipBtn, null),
 		React.createElement("textarea", { id: "input", onKeyPress: checkReturn })
 	);
 }
@@ -52,6 +51,7 @@ function flashcards() {
 	return React.createElement(
 		"div",
 		{ id: "flashcards" },
+		React.createElement(createAnswerCard, null),
 		React.createElement(FirstInputCard, null),
 		React.createElement(SecondCard, null),
 		React.createElement(AnswerBox, null)
@@ -100,7 +100,7 @@ function createUsername() {
 
 function createFlipBtn() {
 	return React.createElement(
-		"btn",
+		"button",
 		{ id: 'flip', onClick: flipCard },
 		"Flip"
 	);
@@ -108,8 +108,9 @@ function createFlipBtn() {
 
 function createAnswerCard() {
 	return React.createElement(
-		"class",
+		"div",
 		{ id: 'answerCard' },
+		React.createElement(createFlipBtn, null),
 		React.createElement(createFrontCard, null),
 		React.createElement(createBackCard, null)
 	)
@@ -192,8 +193,8 @@ function checkCorrect(event) {
 }
 
 function flipCard() {
-	document.getElementById('frontCard').transform = perspective(600px) rotateY(-180deg);
-	document.getElementById('backCard').transform = perspective(600px) rotateY(0deg);
+//	document.getElementById('frontCard').style.transform = rotateY(180deg);
+//	document.getElementById('backCard').style.transform = rotateY(0deg);
 }
 
 function createCORSRequest(method, url) {
@@ -255,10 +256,11 @@ function nextCard() {
 	xhr.onload = function() {
 		let temp = JSON.parse(xhr.responseText);
 		this.card = temp;
-		document.getElementById('frontText').value = temp.input;
+		console.log(temp);
+		document.getElementById('frontText').textContent = temp.input;
 		document.getElementById('backText').textContent = temp.output;
-		document.getElementById('frontCard').transform = perspective(600px) rotateY(0deg);
-		document.getElementById('backCard').transform = perspective(600px) rotateY(180deg);
+		// document.getElementById('frontCard').style.transform = perspective(600px) rotateY(0deg);
+		// document.getElementById('backCard').style.transform = perspective(600px) rotateY(180deg);
 	}
 	xhr.onerror = function() {
 		alert('Error');
@@ -293,6 +295,7 @@ function setupPage() {
 			alert('CORS not supported');
 		}
 		xhr.onload = function() {
+			console.log(xhr.responseText);
 			let temp = JSON.parse(xhr.responseText);
 			if(temp.length != 0){
 				toStartReview();
@@ -318,21 +321,24 @@ function toStartReview() {
 		alert('CORS not supported');
 	}
 	xhr.onload = function() {
-		cards = JSON.parse(xhr.responseText);
-		console.log("cards: ", cards);
+		this.cards = JSON.parse(xhr.responseText);
+		console.log("cards: ", this.cards);
 		nextCard();
 	}
 	xhr.onerror = function() {
 		alert('Error');
 		return;
 	}
-	xhr.send();
+	
 	// shuffle cards
+	document.getElementById("textCard").style.display = 'none';
 	document.getElementById("textCard2").style.display = 'none';
 	document.getElementById("answerBox").style.display = 'block';
 	document.getElementById("startReview").textContent = 'Add';
 	document.getElementById("save").style.display = 'none';
 	document.getElementById("flashcards").style.flexDirection = 'column';
 	document.getElementById("next").style.display = 'block';
-	document.getElementById("answerCard").style.display = 'block';
+	document.getElementById("answerCard").style.display = 'flex';
+
+	xhr.send();
 }

@@ -154,7 +154,7 @@ passport.deserializeUser((dbRowID, done) =>{
 				googleid: row.googleid,
 				firstname: row.firstname,
 				lastname: row.lastname,
-        rowID: 0;
+        			rowID: 0
 			};
 			done(null, user);
 		}
@@ -183,45 +183,65 @@ function isAuthenticated(req, res, next) {
 /***** Requests to the datdabase ****/
 
 function updateSeen(req, res, next){
-	if(req.query.id != undefined){
-		console.log("card id" + req.query.id);
-		let userid = req.user.google.id;
+	if(req.user.googleid != undefined){
+		console.log("card id" + req.user.googleid);
+		let userid = req.user.googleid;
 		let seen = 0;
 		const select = 'SELECT * FROM Flashcards WHERE userid = ?';
-		db.get(select, [userid], (err, rows)=>{
+		db.all(select, [userid], (err, userData)=>{
 			if(err) {
 				console.log("updateSeen Error", err);
 				// throw err;
 			}
-			if(rows) {
+			if(userData) {
 				let test = true;
 				let i = 0;
 				let spanish = '';
          			let english = '';
-				let score = 0;
 				let math = 0;
-
-         while(test) {
-            score=(max(1,5-rows[i].num_correct)+max(1,5-rows[i].num_seen)+5*((rows[i].num_seen-rows[i].num_correct)rows[i].num_seen    ));
-			      math = Math.floor(Math.random() * 15);
-            if(math <= score){
-						  test = false;
-						  seen = rows[i].num_seen + 1;
-
+				let rows = userData;
+				// console.log("userData: \n", userData);
+				// console.log("rows[i]: \n", rows[i].num_correct);
+         			while(i < rows.length) {
+            				let score=(Math.max(1,5-rows[i].num_correct) + Math.max(1,5-rows[i].num_seen) + (5*((rows[i].num_seen-rows[i].num_correct)/(rows[i].num_seen + 1))));
+					math = Math.floor(Math.random() * 15);
+					console.log(math, score);
+            				if(math <= score){
+						rows[i].num_seen = rows[i].num_seen + 1;
+						console.log("num_seen: ", rows[i].num_seen);
   						let update = 'UPDATE Flashcards SET num_seen = ? WHERE input = ?';
-  						db.run(update, [seen, english], (err) => {
+  						db.run(update, [rows[i].num_seen, english], (err) => {
 							      if(err){
 								      throw err;
 							      }
-                    req.user.rowID = rows[i].rowid;
+                 					      req.user.rowID = rows[i].rowid;
 							      console.log("Updated Seen");
-							      res.json(rows[i]);
+							      console.log(rows[i]);
+							      // res.json(rows[i]);
 						  });
+						res.json(rows[i]);
+						break;
 					}
 					else{ i = i + 1; }
 				}
+				if(i >= rows.length){
+					row[0].num_seen = row[0].num_seen + 1;
+					console.log("num_seen: ", row[0].num_seen);
+					let update = 'UPDATE Flashcards SET num_seen = ? WHERE input = ?';
+                                	db.run(update, [row[0].num_seen, english], (err) => {
+                                                if(err){
+                                                        throw err;
+                                                }
+                                                req.user.rowID = rows[i].rowid;
+                                                console.log("Updated Seen");
+                                                console.log(rows[i]);
+                                                // res.json(rows[i]);
+                                        });
+                                	res.json(rows[i]);
+				}
 			}
-			res.send();});
+			// console.log("reached end of updateSeen");
+			// res.json(userData[0]);
 		});
 	} else {
 		console.log("id is undefined");
