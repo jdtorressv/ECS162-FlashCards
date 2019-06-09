@@ -2,6 +2,7 @@
 // An element to go into the DOM
 
 // let cards = {};
+let username = '';
 
 let lango = React.createElement(
 	"h1",
@@ -84,6 +85,20 @@ function startReviewButton() {
 		"Start Review");
 }
 
+function usernameP() {
+	return React.createElement("p", { id: 'username' });
+}
+
+function createUsername() {
+	setUsername();
+	return React.createElement(
+		"div",
+		{ id: 'usernameBar' },
+		React.createElement(usernameP, null),
+		// username
+	);
+}
+
 // An element with some contents, including a variable
 // that has to be evaluated to get an element, and some
 // functions that have to be run to get elements. 
@@ -93,9 +108,9 @@ var main = React.createElement(
 	React.createElement(createLogo, null),
 	React.createElement(flashcards, null),
 	React.createElement(createSaveButton, null),
-	React.createElement(createNextButton, null)
+	React.createElement(createNextButton, null),
+	React.createElement(createUsername, null)
 );
-
 ReactDOM.render(main, document.getElementById('root'));
 
 // onKeyPress function for the textarea element
@@ -172,6 +187,22 @@ function getSaveRequest() {
   xhr.send();
 }
 
+function setUsername() {
+	let url = "/getUser";
+	let xhr = createCORSRequest('GET', url);
+	if(!xhr){
+		alert('CORS not supported');
+	}
+	xhr.onload = function() {
+		let temp = JSON.parse(xhr.responseText);
+		// console.log(temp);
+		// username = temp[1].firstname;
+		document.getElementById('username').textContent = temp[1].firstname;
+	}
+	xhr.onerror = function() { alert('Error'); return; }
+	xhr.send();
+}
+
 function toStartReview() {
 	let url = "/getCards";
 	let xhr = createCORSRequest('GET', url);
@@ -179,7 +210,7 @@ function toStartReview() {
 		alert('CORS not supported');
 	}
 	xhr.onload = function() {
-		let cards = xhr.responseJSON;
+		cards = xhr.responseJSON;
 		console.log("cards: ", cards);
 	}
 	xhr.onerror = function() {

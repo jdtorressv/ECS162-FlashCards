@@ -82,6 +82,22 @@ body {
 	
 }
 
+#usernameBar {
+	display: flex;
+	position: fixed;
+	bottom: 0;
+	width: 100%;
+	align-items: center;
+	justify-content: center;
+	background-color: rgb(42,37,109);
+}
+
+#username {
+	padding-top: 1%;
+	padding-bottom: 1%;
+	color: white;
+}
+
 #flashcards {
 	display: flex;
 	flex-direction: row;

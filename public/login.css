@@ -1,35 +1,62 @@
 main {
-display flex; 
-flex-direction row; 
+	display: flex; 
+	flex-direction: row; 
 }
 
 #title {
-font-family: Raleway, sans serif; font-weight: 700; font-style: normal;
-font-size: 75pt; 
-color: white;  
+	/*text-align: center;*/
+	padding-left: 15%;
+	font-family: 'Raleway', sans-serif; font-weight: 700; font-style: normal;
+	font-size: 50pt; 
+	color: white;  
 }
 
 #message {
-font-family: Open Sans Light; font-weight: 100; font-style: normal;
-font-size: 45pt;
-color: rgb(23, 198, 140);
+	/*text-align: center;*/
+	padding-left: 15%;
+	padding-top: 5%;
+	font-family: 'Open Sans Light', sans-serif; font-weight: 100; font-style: normal;
+	font-size: 24pt;
+	font-weight: 100;
+	color: rgb(23, 198, 140);
 
 }
 
 #welcome { 
-display: flex; 
-flex-direction: column;
-background-image: linear-gradient(rgb(37, 17, 137), rgb(131, 102, 186));  
-box-shadow: 10px 0px 5px grey;
+	display: flex; 
+	flex-direction: column;
+	background-image: linear-gradient(to bottom right, rgb(37, 17, 137), rgb(131, 102, 186));  
+	box-shadow: 10px 0px 5px grey;
+	height: 100vh;
+	flex: 1;
+	/*align-items: center;*/
+	justify-content: center;
 }
 
 #login {
-background-color: rgb(23, 198, 140); 
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	flex: 1;
+	justify-content: center;
+	align-items: center;
+	background-color: white;
 }
 
 a {
-color: white; 
-text-decoration: none; 
+	/* vertical-align: middle;
+	display: block;
+	text-align: center;*/
+	font-family: 'Helvetica', sans-serif;
+	border-style: solid;
+	background-color: rgb(23, 198, 140);
+	font-size: 16pt;
+	color: white; 
+	text-decoration: none;
+	padding-top: 15px;
+	padding-bottom: 15px;
+	padding-left: 20px;
+	padding-right: 20px;
 } 
 
  

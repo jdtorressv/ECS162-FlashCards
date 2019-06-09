@@ -6,11 +6,14 @@ const db = new sqlite3.Database('Flashcards.db');
 const express = require('express');
 const passport = require('passport');
 const cookieSession = require('cookie-session'); 
-const port = 57443; // you need to put your port number here
+// const port = 57443; // you need to put your port number here
+const port = 52791;
 const app = express();
 const GoogleStrategy = require('passport-google-oauth20'); 
-const clID = '692094366203-oamg12e85mg7sbefgil9d9o7gmk8lr57.apps.googleusercontent.com';
-const clSecret = 'PEk0egsTSdvFi3mZ7Z1IeTkS';
+// const clID = '692094366203-oamg12e85mg7sbefgil9d9o7gmk8lr57.apps.googleusercontent.com';
+// const clSecret = 'PEk0egsTSdvFi3mZ7Z1IeTkS';
+const clID = '1042840075543-l87sl1mgc5hcovufs7ee5sh877mfd218.apps.googleusercontent.com';
+const clSecret = 'cRaSQ_BkZ2CeHZNn9CNaqy5Z';
 
 // googleLoginData
 const googleLoginData = {
@@ -109,7 +112,7 @@ function fileNotFound(req, res){
 
 // Return code: 302
 function gotProfile(accessToken, refreshToken, profile, done){
-  console.log("Google profile ", profile);
+  // console.log("Google profile ", profile);
   let select = 'SELECT * FROM Users WHERE googleid = ?';
   let googleid = profile.id;
   let firstname = profile.name.givenName;
@@ -240,7 +243,7 @@ function updateCorrect(req, res, next){
 
 function getCards(req, res) {
 	if(req.user) {
-		let select = 'SELECT userid FROM Flashcards WHERE userid = ?';
+		let select = 'SELECT * FROM Flashcards WHERE userid = ?';
 		console.log(req.user.googleid);
 		db.all(select, [req.user.googleid], (err, rows) => {
 			if(err){
@@ -254,9 +257,19 @@ function getCards(req, res) {
 }
 
 function getUser(req, res){
-	if(req.user){
-		res.json(req.user);
-	}
+	if(req.user) {
+                let select = 'SELECT * FROM Users WHERE googleid = ?';
+                // console.log(req.user.googleid);
+                db.all(select, [req.user.googleid], (err, rows) => {
+                        if(err){
+                                console.log("getUsers error", err);
+                                // throw err;
+                        }
+                        console.log("in getUsers, ", rows);
+                        res.json(rows);
+                });
+        }
+
 }
 
 function dumpDB() {
@@ -323,6 +336,7 @@ app.get('/auth/accepted', passport.authenticate('google'), function(req, res) {
 app.get('/public/*', isAuthenticated, express.static('.'));
 
 app.use(express.static('public'));  // can I find a static file?
+app.get('/getUser', isAuthenticated, getUser);
 app.get('/getCards', isAuthenticated, getCards);
 app.get('/updateSeen', isAuthenticated, updateSeen);
 app.get('/updateCorrect', isAuthenticated, updateCorrect);
