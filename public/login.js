@@ -1,27 +1,4 @@
 'use strict';
-/*
-function createCORSRequest(method, url) {
-  let xhr = new XMLHttpRequest();
-  xhr.open(method, url, true);
-  return xhr;
-}
-
-function loginRequest() {
-	let url = 'auth/google';
-	let xhr = createCORSRequest('GET', url);
-	
-	if(!xhr) {
-		console.log("CORS not supported");
-		return;
-	}
-	
-	xhr.onload = function () { 
-		console.log('logged in!'); 
-	};
-	xhr.onerror = function () { console.log('browser sees error', xhr);};
-	xhr.send();
-}
-*/
 
 function loginRequest() {
 	url = 'auth/google';
@@ -49,7 +26,7 @@ function loginButton() {
 }
 
 function loginSide() {
-	return React.createElement("div", { id: 'login' }, React.createElement(loginButton, null));	
+	return React.createElement("div", { id: 'login' }, React.createElement(loginButton, null));
 }
 
 
@@ -59,5 +36,5 @@ var main = React.createElement(
 		React.createElement(welcomeSide, null),
 		React.createElement(loginSide, null)
 	);
-		
+
 ReactDOM.render(main, document.getElementById('root'));

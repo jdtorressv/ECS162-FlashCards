@@ -5,11 +5,11 @@ const sqlite3 = require('sqlite3');
 const db = new sqlite3.Database('Flashcards.db');
 const express = require('express');
 const passport = require('passport');
-const cookieSession = require('cookie-session'); 
+const cookieSession = require('cookie-session');
 // const port = 57443; // you need to put your port number here
 const port = 52791;
 const app = express();
-const GoogleStrategy = require('passport-google-oauth20'); 
+const GoogleStrategy = require('passport-google-oauth20');
 // const clID = '692094366203-oamg12e85mg7sbefgil9d9o7gmk8lr57.apps.googleusercontent.com';
 // const clSecret = 'PEk0egsTSdvFi3mZ7Z1IeTkS';
 const clID = '1042840075543-l87sl1mgc5hcovufs7ee5sh877mfd218.apps.googleusercontent.com';
@@ -24,12 +24,12 @@ const googleLoginData = {
 
 passport.use(new GoogleStrategy(googleLoginData, gotProfile));
 
-// For server-api interaction 
+// For server-api interaction
 const APIrequest = require('request');
 const http = require('http');
 const APIkey = 'AIzaSyBmy2oxvsm784oHnFrBT50Slm5T3yYAJLw';
 const url = "https://translation.googleapis.com/language/translate/v2?key="+APIkey;
-const fs = require("fs"); 
+const fs = require("fs");
 
 // Not sure if we'll still need these:
 const keys = require('./config/keys');
@@ -44,7 +44,7 @@ let reqObj = {
 process.on('SIGINT', function() {
     db.all ( 'SELECT * FROM flashcards', dataCallback);
     function dataCallback( err, data ) {
-    	db.close(); 
+    	db.close();
 	process.exit(0);
     }
 });
@@ -116,7 +116,7 @@ function gotProfile(accessToken, refreshToken, profile, done){
   let select = 'SELECT * FROM Users WHERE googleid = ?';
   let googleid = profile.id;
   let firstname = profile.name.givenName;
-  let lastname = profile.name.familyName;  
+  let lastname = profile.name.familyName;
   // console.log(googleid, lastname, firstname);
   db.run(select, [googleid], (err, rows) => {
 	if(err) {
@@ -150,15 +150,13 @@ passport.deserializeUser((dbRowID, done) =>{
 		}
 		if(row){
 			//console.log("inside deserializer",row);
-			let userData = {
+			let user = {
 				googleid: row.googleid,
 				firstname: row.firstname,
-				lastname: row.lastname
+				lastname: row.lastname,
+        rowID: 0;
 			};
-			
-			// console.log("inside deserializer",userData);
-			// dumpDB();
-			done(null, userData);
+			done(null, user);
 		}
 	})
 });
@@ -187,42 +185,43 @@ function isAuthenticated(req, res, next) {
 function updateSeen(req, res, next){
 	if(req.query.id != undefined){
 		console.log("card id" + req.query.id);
-		let cardID = req.dbRowID;
+		let userid = req.user.google.id;
 		let seen = 0;
 		const select = 'SELECT * FROM Flashcards WHERE userid = ?';
-		db.get(select, [cardID], (err, rows)=>{
+		db.get(select, [userid], (err, rows)=>{
 			if(err) {
 				console.log("updateSeen Error", err);
 				// throw err;
 			}
-			if(row) {
+			if(rows) {
 				let test = true;
 				let i = 0;
 				let spanish = '';
          			let english = '';
-				let score = 0;       
+				let score = 0;
 				let math = 0;
 
-         			while(test) {
-                 		score=(max(1,5-rows[i].num_correct)+max(1,5-rows[i].num_seen)+5*((rows[i].num_seen-rows[i].num_correct)rows[i].num_seen    ));
-			                math = Math.floor(Math.random() * 15);
-                 			if(math <= score){
-						test = false;
-						seen = rows[i].num_seen + 1;
-						
-						let update = 'UPDATE Flashcards SET num_seen = ? WHERE input = ?';
-						db.run(update, [seen, english], (err) => {
-							if(err){
-								throw err;
-							}
-							console.log("Updated Seen");
-							res.send();
-						});
+         while(test) {
+            score=(max(1,5-rows[i].num_correct)+max(1,5-rows[i].num_seen)+5*((rows[i].num_seen-rows[i].num_correct)rows[i].num_seen    ));
+			      math = Math.floor(Math.random() * 15);
+            if(math <= score){
+						  test = false;
+						  seen = rows[i].num_seen + 1;
+
+  						let update = 'UPDATE Flashcards SET num_seen = ? WHERE input = ?';
+  						db.run(update, [seen, english], (err) => {
+							      if(err){
+								      throw err;
+							      }
+                    req.user.rowID = rows[i].rowid;
+							      console.log("Updated Seen");
+							      res.json(rows[i]);
+						  });
 					}
 					else{ i = i + 1; }
 				}
 			}
-			res.send();});			
+			res.send();});
 		});
 	} else {
 		console.log("id is undefined");
@@ -230,28 +229,31 @@ function updateSeen(req, res, next){
 }
 
 function updateCorrect(req, res, next){
-	if(req.query.id != undefined){
-		console.log("card id: " + req.query.id);
-		let cardID = req.dbRowID;
+	if(req.user.rowID != 0){
+		console.log("card id: " + req.user.rowID);
+		let cardID = req.user.rowID;
 		let correct = 0;
-		const sql1 = 'SELECT * FROM Flashcards WHERE userid = ?';
-		db.get(sql1, [cardID], (err, row)=>{
+		const select = 'SELECT * FROM Flashcards WHERE rowid = ?';
+		db.get(select, [cardID], (err, row)=>{
 			if(err) {
 				console.log("updateCorrect Error ", err);
 				// throw err;
 			}
 			if(row) {
-				console.log("this is the row "+ row.num_correct);
+        correct = row.num_correct + 1;
+        let update = 'UPDATE Flashcards SET num_correct = ? WHERE rowid = ?';
+        db.run(update, [correct, cardID], (err) =>{
+          if(err){
+            console.log('Error updated correct');
+          }
+          else{
+            console.log('Updated num_correct Successful');
+            res.send();
+          }
+        });
 			}
-			correct = row.numCorrect + 1;
-			let sql = 'UPDATE flashcards SET numCorrect = ? WHERE userid = ?';
-			db.run(sql, [correct,cardID], (err, rows)=>{
-			if(err) {
-				console.log("updateCorrect Error ", err);
-				// throw err;
-			}
-			res.json("success for correct");});			
-		});
+			res.send();
+    });
 	} else {
 		console.log("id is undefined");
 	}
@@ -274,18 +276,16 @@ function getCards(req, res) {
 
 function getUser(req, res){
 	if(req.user) {
-                let select = 'SELECT * FROM Users WHERE googleid = ?';
-                // console.log(req.user.googleid);
-                db.all(select, [req.user.googleid], (err, rows) => {
-                        if(err){
-                                console.log("getUsers error", err);
-                                // throw err;
-                        }
-                        console.log("in getUsers, ", rows);
-                        res.json(rows);
-                });
-        }
-
+    let select = 'SELECT * FROM Users WHERE googleid = ?';
+    db.all(select, [req.user.googleid], (err, rows) => {
+      if(err){
+        console.log("getUsers error", err);
+        throw err;
+      }
+      console.log("in getUsers, ", rows);
+      res.json(rows);
+    });
+  }
 }
 
 function dumpDB() {
@@ -331,7 +331,7 @@ process.on('exit', function(){
   });
 
 
-// Let the mighty pipeline begin 
+// Let the mighty pipeline begin
 app.use(cookieSession({
     maxAge: 6*60*60*1000,
     keys:['random string']
@@ -361,4 +361,3 @@ app.post('/store', isAuthenticated, saveFlashcard);
 app.use( fileNotFound );
 
 app.listen(port, function (){console.log('Listening...');} );
-

@@ -1,9 +1,6 @@
 'use strict';
-// An element to go into the DOM
 
-// let cards = {};
-let scores = [][];
-let username = '';
+let card = {};
 
 let lango = React.createElement(
 	"h1",
@@ -19,7 +16,7 @@ function createLogo() {
 		lango);
 }
 
-// A component - function that returns some elements 
+// A component - function that returns some elements
 function SecondCard() {
 	return React.createElement(
 			"div",
@@ -27,7 +24,7 @@ function SecondCard() {
 			React.createElement(
 				"p",
 				{ id: "output" },
-				
+
 			)
 	);
 }
@@ -37,6 +34,7 @@ function FirstInputCard() {
 	return React.createElement(
 		"div",
 		{ id: "textCard" },
+		React.createElement(createFlipBtn, null),
 		React.createElement("textarea", { id: "input", onKeyPress: checkReturn })
 	);
 }
@@ -56,7 +54,7 @@ function flashcards() {
 		{ id: "flashcards" },
 		React.createElement(FirstInputCard, null),
 		React.createElement(SecondCard, null),
-		React.createElement(AnswerBox, null),
+		React.createElement(AnswerBox, null)
 	);
 }
 
@@ -64,7 +62,7 @@ function createSaveButton() {
 	return React.createElement(
 		"div",
 		{ id: "saveButton" },
-		React.createElement( 
+		React.createElement(
 			"button",
 			{ id: "save", onClick: getSaveRequest},
 			"Save"),
@@ -73,8 +71,8 @@ function createSaveButton() {
 
 function createNextButton() {
 	return React.createElement(
-		"div", 
-		{ id: "nextButton"}, 
+		"div",
+		{ id: "nextButton"},
 		React.createElement("button", { id: "next", onClick: nextCard }, "Next")
 		);
 }
@@ -91,7 +89,7 @@ function usernameP() {
 }
 
 function createUsername() {
-	setUsername();
+	setupPage();
 	return React.createElement(
 		"div",
 		{ id: 'usernameBar' },
@@ -100,9 +98,56 @@ function createUsername() {
 	);
 }
 
+function createFlipBtn() {
+	return React.createElement(
+		"btn",
+		{ id: 'flip', onClick: flipCard },
+		"Flip"
+	);
+}
+
+function createAnswerCard() {
+	return React.createElement(
+		"class",
+		{ id: 'answerCard' },
+		React.createElement(createFrontCard, null),
+		React.createElement(createBackCard, null)
+	)
+}
+
+function createFrontCard() {
+	return React.createElement(
+		"div",
+		{ id: 'frontCard' },
+		React.createElement(createFrontText, null)
+	)
+}
+
+function createFrontText() {
+	return React.createElement(
+		"p",
+		{ id: 'frontText' }
+	)
+}
+
+function createBackCard() {
+	return React.createElement(
+		"div",
+		{ id: 'backCard' },
+		React.createElement(createBackText, null)
+	)
+}
+
+function createBackText() {
+	return React.createElement(
+		"p",
+		{ id: 'backText' }
+	)
+}
+
 // An element with some contents, including a variable
 // that has to be evaluated to get an element, and some
-// functions that have to be run to get elements. 
+// functions that have to be run to get elements.
 var main = React.createElement(
 	"main",
 	null,
@@ -126,7 +171,18 @@ function checkCorrect(event) {
 		let input = document.getElementById("answerBox").value;
 		let answer = document.getElementById("output").textContent;
 		if(input == answer){
-			
+			let url = '/updateCorrect';
+			let xhr = createCORSRequest('GET', url);
+			if(!xhr){
+				alert('CORS not supported');
+			}
+			xhr.onload = function() {
+				console.log("updated Correct");
+			}
+			xhr.onerror = function() {
+				alert('Error');
+			}
+			xhr.send();
 			// flip card and display correct and update correct
 		}
 		else {
@@ -135,27 +191,9 @@ function checkCorrect(event) {
 	}
 }
 
-function nextCard() {
-	let test = true;
-	let i = 0;
-	let spanish = '';
-	let english = '';
-	let score = 0;
-	let math = 0;	
-
-	while(test) {
-		score=(max(1,5-cards[i].num_correct)+max(1,5-cards[i].num_seen)+5*((cards[i].num_seen-cards[i].num_correct)/cards[i].num_seen));
-		math = Math.floor(Math.random() * 15);
-		if(math <= score){
-			document.getElementById("input").value = cards[i].output;
-			document.getElementById("output").textContent = cards[i].input;
-			cards[i].num_seen = cards[i].num_seen + 1;
-			test = false;
-		}
-		else{
-			i = i + 1;
-		}
-	}
+function flipCard() {
+	document.getElementById('frontCard').transform = perspective(600px) rotateY(-180deg);
+	document.getElementById('backCard').transform = perspective(600px) rotateY(0deg);
 }
 
 function createCORSRequest(method, url) {
@@ -202,13 +240,43 @@ function getSaveRequest() {
     alert('Error');
     return;
   }
-  
+
   document.getElementById("input").value = "";
   document.getElementById("output").textContent = "";
   xhr.send();
 }
 
-function setUsername() {
+function nextCard() {
+	let url = '/updateSeen';
+	let xhr = createCORSRequest('GET', url);
+	if(!xhr){
+		alert("CORS not supported");
+	}
+	xhr.onload = function() {
+		let temp = JSON.parse(xhr.responseText);
+		this.card = temp;
+		document.getElementById('frontText').value = temp.input;
+		document.getElementById('backText').textContent = temp.output;
+		document.getElementById('frontCard').transform = perspective(600px) rotateY(0deg);
+		document.getElementById('backCard').transform = perspective(600px) rotateY(180deg);
+	}
+	xhr.onerror = function() {
+		alert('Error');
+	}
+	xhr.send();
+}
+
+function addBtn() {
+	document.getElementById("textCard2").style.display = 'flex';
+	document.getElementById("answerBox").style.display = 'none';
+	document.getElementById("startReview").textContent = 'Start Review';
+	document.getElementById("save").style.display = 'block';
+	document.getElementById("flashcards").style.flexDirection = 'row';
+	document.getElementById("next").style.display = 'none';
+	document.getElementById("answerCard").style.display = 'none';
+}
+
+function setupPage() {
 	let url = "/getUser";
 	let xhr = createCORSRequest('GET', url);
 	if(!xhr){
@@ -219,6 +287,25 @@ function setUsername() {
 		console.log(temp[1].firstname);
 		// username = temp[1].firstname;
 		document.getElementById('username').textContent = temp[1].firstname;
+		let url = "/getCards";
+		let xhr = createCORSRequest('GET', url);
+		if(!xhr){
+			alert('CORS not supported');
+		}
+		xhr.onload = function() {
+			let temp = JSON.parse(xhr.responseText);
+			if(temp.length != 0){
+				toStartReview();
+			}
+			else{
+				console.log('No cards from this user');
+			}
+		}
+		xhr.onerror = function() {
+			alert('Error');
+			return;
+		}
+		xhr.send();
 	}
 	xhr.onerror = function() { alert('Error'); return; }
 	xhr.send();
@@ -247,5 +334,5 @@ function toStartReview() {
 	document.getElementById("save").style.display = 'none';
 	document.getElementById("flashcards").style.flexDirection = 'column';
 	document.getElementById("next").style.display = 'block';
-	
+	document.getElementById("answerCard").style.display = 'block';
 }
