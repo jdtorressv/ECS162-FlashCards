@@ -46,9 +46,9 @@ body {
     border-style: solid;
     border-width: 4px;
     margin-top: 10%;
-    margin-right: 5%;
+    margin-right: 10%;
     margin-left: 10%;
-    width: 100%;
+    width: 80%;
     height: 300px;
     flex:1;
     align-items: center;
@@ -62,7 +62,6 @@ body {
     border-width: 4px;
     margin-top: 10%;
     margin-right: 10%;
-    margin-left: 5%;
     flex:1;
     height: 300px;
 
@@ -71,6 +70,17 @@ body {
     vertical-align: middle;
 }
 
+#answerBox {
+	display: none;
+	border-style: solid;
+	border-width: 4px;
+	margin-top: 5%;
+	margin-right: 10%;
+	margin-left: 10%;
+	height: 150px;
+	width: 80%;
+	
+}
 
 #flashcards {
 	display: flex;
@@ -99,6 +109,27 @@ body {
 	padding-bottom: 10px;
 	padding-left: 30px;
 	padding-right: 30px;
+}
+
+#nextButton {
+	width: 100%;
+	display: flex;
+	justify-content: flex-end;
+	align-items: center;
+}
+
+#next {
+	display: none;
+	margin-top: 5%;
+	margin-right: 10%;
+	padding-top: 10px;
+	padding-bottom: 10px;
+	padding-left: 30px;
+	padding-right: 30px;
+	border-radius: 10px;
+	background-color: rgb(23, 198, 140);
+	color: white;
+	font-size: 13pt;
 }
 
 main {

@@ -1,0 +1,35 @@
+main {
+display flex; 
+flex-direction row; 
+}
+
+#title {
+font-family: Raleway, sans serif; font-weight: 700; font-style: normal;
+font-size: 75pt; 
+color: white;  
+}
+
+#message {
+font-family: Open Sans Light; font-weight: 100; font-style: normal;
+font-size: 45pt;
+color: rgb(23, 198, 140);
+
+}
+
+#welcome { 
+display: flex; 
+flex-direction: column;
+background-image: linear-gradient(rgb(37, 17, 137), rgb(131, 102, 186));  
+box-shadow: 10px 0px 5px grey;
+}
+
+#login {
+background-color: rgb(23, 198, 140); 
+}
+
+a {
+color: white; 
+text-decoration: none; 
+} 
+
+ 

@@ -1,6 +1,10 @@
 const express = require('express');
 const passport = require('passport');
 const cookieSession = require('cookie-session');
+const port = 57443;
+const clID = '692094366203-oamg12e85mg7sbefgil9d9o7gmk8lr57.apps.googleusercontent.com';
+const clSecret = 'PEk0egsTSdvFi3mZ7Z1IeTkS';
+
 
 const GoogleStrategy = require('passport-google-oauth20');
 const sqlite = require('sqlite3');
@@ -13,12 +17,11 @@ const sqlite = require('sqlite3');
 // information, packed into a redirect response that redirects to
 // server162.site:[port]/auth/redirect
 const googleLoginData = {
-    clientID: '472036695689-s9n5kubr2kuqftbvk0ujl67i324njo3p.apps.googleusercontent.com',
-    clientSecret: 'W-edC3ifbkX9nxSDoNheWPca',
-    callbackURL: '/auth/redirect'
-};
 
-// Strategy configuration. 
+    clientID: clID,
+    clientSecret: clSecret,
+    callbackURL: '/auth/redirect'
+}; 
 // Tell passport we will be using login with Google, and
 // give it our data for registering us with Google.
 // The gotProfile callback is for the server's HTTPS request
@@ -100,7 +103,7 @@ app.get('/query', function (req, res) { res.send('HTTP query!') });
 app.use( fileNotFound );
 
 // Pipeline is ready. Start listening!  
-app.listen(30057, function (){console.log('Listening...');} );
+app.listen(port, function (){console.log('Listening...');} );
 
 
 // middleware functions

@@ -1,50 +1,50 @@
 "use strict"
-// server js
 
+// For server-browser
 const sqlite3 = require('sqlite3');
 const db = new sqlite3.Database('Flashcards.db');
 const express = require('express');
+const passport = require('passport');
+const cookieSession = require('cookie-session'); 
 const port = 57443; // you need to put your port number here
+const app = express();
+const GoogleStrategy = require('passport-google-oauth20'); 
+const clID = '692094366203-oamg12e85mg7sbefgil9d9o7gmk8lr57.apps.googleusercontent.com';
+const clSecret = 'PEk0egsTSdvFi3mZ7Z1IeTkS';
+
+// googleLoginData
+const googleLoginData = {
+    clientID: clID,
+    clientSecret: clSecret,
+    callbackURL: '/auth/accepted'
+  };
+
+passport.use(new GoogleStrategy(googleLoginData, gotProfile));
+
+// For server-api interaction 
 const APIrequest = require('request');
 const http = require('http');
 const APIkey = 'AIzaSyBmy2oxvsm784oHnFrBT50Slm5T3yYAJLw';
 const url = "https://translation.googleapis.com/language/translate/v2?key="+APIkey;
-const app = express();
+const fs = require("fs"); 
 
-const clID = '';
-const clSecret = '';
-
-const googleLoginData = {
-    clientID: clID,
-    clientSecret: clSecret,
-    callbackURL: '/auth/redirect'
-  };
-
-const cookieSession = require('cookie-session');
-const passport = require('passport');
-const authRoutes = require('./routes/auth-routes.js');
-const profileRoutes = require('./routes/profile-routes.js');
-const passportSetup = require('./config/passport-setup.js');
+// Not sure if we'll still need these:
 const keys = require('./config/keys');
 
-// cookie stage
-app.use(cookieSession({
-    maxAge: 6*60*60*1000,
-    keys:[keys.session.cookieKey]
-  })); // how long server remembers cookie (6 hrs), what is the key signature
-
-app.use(passport.initialize());
-app.use(passport.session());
-
-// set up routes
-app.use('/auth', authRoutes);
-app.use('/profile', profileRoutes);
 
 let reqObj = {
       "source": "en", // User can't change language settings from browser -- Eng -> anything
       "target": "es", //can be any language here from their list
-      "q": ""
+      "q": ["example phrase"]
     };
+
+process.on('SIGINT', function() {
+    db.all ( 'SELECT * FROM flashcards', dataCallback);
+    function dataCallback( err, data ) {
+    	db.close(); 
+	process.exit(0);
+    }
+});
 
 function translateHandler(req, res, next) {
     let requrl = req.url;
@@ -76,12 +76,12 @@ function getTranslation(res){
     	     // API worked but is not giving you data
     	      console.log(APIresHead.error);
         } else {
-          res.send(APIresBody.data.translations[0].translatedText);
-    	    console.log("In Korean: "+ APIresBody.data.translations[0].translatedText);
-    	    console.log("\n\nJSON was:");
-    	    console.log(JSON.stringify(APIresBody, undefined, 2));
+		// print it out as a string, nicely formatted
+         	res.send(APIresBody.data.translations[0].translatedText);
+//    	    	console.log("In Spanish: "+ APIresBody.data.translations[0].translatedText);
+//    	    	console.log("\n\nJSON was:");
+//    	    	console.log(JSON.stringify(APIresBody, undefined, 2));
         }
-    	// print it out as a string, nicely formatted
       }
 
   } // end callback function
@@ -110,72 +110,158 @@ function fileNotFound(req, res){
 // Return code: 302
 function gotProfile(accessToken, refreshToken, profile, done){
   console.log("Google profile ", profile);
-  let insert = 'INSERT into Users VALUES(?, ?, ?)'
-
-  db.run(insert, [profile.id, profile.givenName, profile.familyName], insertCallback);
-  let dbRowID = 1;
-  done(null, dbRowID);
-}
-
-function serializeUser(user, done){
-  done(null, user.id);
-}
-
-function deSerializeUser(user, done){
-  User.findById(id, function(err, user){
-    done(err, user);
+  let select = 'SELECT * FROM Users WHERE googleid = ?';
+  let googleid = profile.id;
+  let firstname = profile.name.givenName;
+  let lastname = profile.name.familyName;  
+  // console.log(googleid, lastname, firstname);
+  db.run(select, [googleid], (err, rows) => {
+	if(err) {
+		console.log("gotProfile error", err);
+		// throw err;
+	}
+	if(!rows){
+		let insert = 'INSERT INTO Users (googleid, firstname, lastname) VALUES(?, ?, ?)';
+		db.run(insert, [googleid, firstname, lastname], insertCallback);
+		let dbRowID = googleid;
+		done(null, dbRowID);
+	}
+	else{
+		let dbRowID = googleid;
+		done(null, dbRowID);
+	}
   });
+  dumpDB();
 }
 
-app.use(passport.initialize()); // initializes req for next passport stages
-app.use(passport.session()); // attach user info to req in req.user. calls deserializeUser -- takes info out of database based on userID
-app.get('/auth/google', passport.authenticate('google', { scope: /*profile*/ }));
-passport.use(new GoogleStrategy(googleLoginData, gotProfile));
+passport.serializeUser((dbRowID, done) =>{
+  done(null, dbRowID);
+});
 
-app.use(express.static('public'));  // can I find a static file?
-// Method: 'GET'
-app.get('/translate', translateHandler);   // if not, go next
-// Method: 'POST'
-app.post('/store', saveFlashcard);
-app.use( fileNotFound );
+passport.deserializeUser((dbRowID, done) =>{
+	let select = 'SELECT * FROM Users WHERE googleid = ?'; // TODO: unable to check properly
+	db.get(select, [dbRowID], (err, row) => {
+		if (err) {
+		  console.log("deserializeUser error", err);
+		  // throw err;
+		}
+		if(row){
+			//console.log("inside deserializer",row);
+			let userData = {
+				googleid: row.googleid,
+				firstname: row.firstname,
+				lastname: row.lastname
+			};
+			
+			// console.log("inside deserializer",userData);
+			// dumpDB();
+			done(null, userData);
+		}
+	})
+});
 
-app.listen(port, function (){console.log('Listening...');} );
+function loginAuthenticated(req, res, next) {
+        if(req.user){
+                res.redirect('/lango.html');
+        }
+        else {
+                next();
+        }
+}
 
+function isAuthenticated(req, res, next) {
+	if(req.user){
+		next();
+	}
+	else {
+		res.redirect('/login.html');
+	}
+}
 
 
 /***** Requests to the datdabase ****/
 
-function insertUser() {
-  let insert = 'INSERT into Users VALUES(?, ?, ?)';
-  db.get(insert, [googleid], function(err, rowData){
-    if(rowData){
-      Console.log("User exists");
-      done(null);
-    }
-    else{
-      Console.log("User inserted into databse");
-      done(null);
-    }
-  })
+function updateSeen(req, res, next){
+	if(req.query.id != undefined){
+		console.log("card id" + req.query.id);
+		let cardID = req.query.id;
+		let shown = 0;
+		const sql1 = 'SELECT * FROM Flashcards WHERE userid = ?';
+		db.get(sql1, [cardID], (err, row)=>{
+			if(err) {
+				console.log("updateSeen Error", err);
+				// throw err;
+			}
+			if(row) {
+				console.log(row.num_seen);
+			}
+			shown = row.numShown + 1;
+			console.log("shown is " + shown);
+			let sql = 'UPDATE Flashcards SET num_seen = ? WHERE userid = ?';
+			db.run(sql, [shown,cardID], (err, rows)=>{
+			if(err) {
+				console.log("updateSeen Error", err);
+				// throw err;
+			}
+			res.json("success for shown");});			
+		});
+	} else {
+		console.log("id is undefined");
+	}
 }
 
-function checkUser() {
-  check = 'SELECT * FROM Users WHERE googleid ='+profile.id;
-  db.get(check, function checkCallback(err, rowData){
-    if(err){
-      console.log("Check Error: "+err);
-    }
-    else if(rowData.length == 0){
-      console.log("No user data");
-    }
-    else {
-      console.log("Checked Correctly");
-    }
-  })
+function updateCorrect(req, res, next){
+	if(req.query.id != undefined){
+		console.log("card id: " + req.query.id);
+		let cardID = req.dbRowID;
+		let correct = 0;
+		const sql1 = 'SELECT * FROM Flashcards WHERE userid = ?';
+		db.get(sql1, [cardID], (err, row)=>{
+			if(err) {
+				console.log("updateCorrect Error ", err);
+				// throw err;
+			}
+			if(row) {
+				console.log("this is the row "+ row.numCorrect);
+			}
+			correct = row.numCorrect + 1;
+			let sql = 'UPDATE flashcards SET numCorrect = ? WHERE userid = ?';
+			db.run(sql, [correct,cardID], (err, rows)=>{
+			if(err) {
+				console.log("updateCorrect Error ", err);
+				// throw err;
+			}
+			res.json("success for correct");});			
+		});
+	} else {
+		console.log("id is undefined");
+	}
+}
+
+function getCards(req, res) {
+	if(req.user) {
+		let select = 'SELECT userid FROM Flashcards WHERE userid = ?';
+		console.log(req.user.googleid);
+		db.all(select, [req.user.googleid], (err, rows) => {
+			if(err){
+				console.log("getCards error", err);
+				// throw err;
+			}
+			console.log("in getCards, ", rows);
+			res.json(rows);
+		});
+	}
+}
+
+function getUser(req, res){
+	if(req.user){
+		res.json(req.user);
+	}
 }
 
 function dumpDB() {
     db.all ( 'SELECT * FROM Flashcards', dataCallback);
+    db.all( 'SELECT * FROM Users', dataCallback);
     function dataCallback( err, data ) {console.log(data)}
 }
 
@@ -190,8 +276,8 @@ function saveFlashcard(req, res, next){
   console.log(input, output);
 
   if(input != undefined){
-    let cmdStr = 'INSERT into Flashcards  VALUES(1,?,?,0,0)';
-    db.run(cmdStr, [input, output], insertCallback);
+    let cmdStr = 'INSERT into Flashcards  VALUES(?,?,?,0,0)';
+    db.run(cmdStr, [req.user.googleid, input, output], insertCallback);
     res.send("Successfully inserted.");
   }
   else {
@@ -209,62 +295,40 @@ function insertCallback(err){
   }
 }
 
+
 // close on exiting the terminal
 process.on('exit', function(){
   db.close();
+  });
+
+
+// Let the mighty pipeline begin 
+app.use(cookieSession({
+    maxAge: 6*60*60*1000,
+    keys:['random string']
+  })); // how long server remembers cookie (6 hrs), what is the key signature
+
+app.use(passport.initialize());
+app.use(passport.session());
+//app.get('/lango.html', loginAuthenticated);
+app.get('/*', express.static('public'));
+
+app.get('/auth/google', passport.authenticate('google', { scope: ['profile'] }));
+
+app.get('/auth/accepted', passport.authenticate('google'), function(req, res) {
+        console.log('Logged in');
+        res.redirect('/public/lango.html');
 });
 
+app.get('/public/*', isAuthenticated, express.static('.'));
 
-/* FOR NEXT PART OF PROJECT
-function getReview(){
-  let cmdSTR = 'SELECT * FROM Flashcards WHERE userid = 1';
-  db.all(cmdSTR, reviewCallback);
-  newView(); // Sets view of first card
-}
+app.use(express.static('public'));  // can I find a static file?
+app.get('/getCards', isAuthenticated, getCards);
+app.get('/updateSeen', isAuthenticated, updateSeen);
+app.get('/updateCorrect', isAuthenticated, updateCorrect);
+app.get('/translate', isAuthenticated, translateHandler);   // if not, go next
+app.post('/store', isAuthenticated, saveFlashcard);
+app.use( fileNotFound );
 
-function reviewCallback(err, arrayData){
-  if(err){
-    console.log("Error: ", err);
-  }
-  else{
-    console.log(arrayData);
-    document.getElementById("tableValues").value = arrayData;
-  }
-}
+app.listen(port, function (){console.log('Listening...');} );
 
-function resetReview(){
-  let cmdSTR = 'UPDATE Flaschards set num_seen = 0 and num_correct = 0';
-  db.run(cmdStr, updateCallback);
-}
-
-// When user hits clicks next in review mode
-function newView(){
-
-}
-
-// When hit enter in review mode
-function isCorrect(){
-  let inputText = document.getElementById("inputText").textContent; // the text saving the correct input -- different input tag
-  let input = getInput();
-  let num_correct = getNumCorrect();
-  //let rowid = getRowId();
-
-  if(input == inputText){
-    //db.run('UPDATE FLashcards SET num_correct = ? WHERE rowid = ?', [num_correct + 1, rowid], updateCallback);
-    db.run('UPDATE FLashcards SET num_correct = ? WHERE input = ?', [num_correct + 1, inputText], updateCallback);
-  }
-  else{
-    // console.log("Incorrect Answer");
-    document.getElementById("incorrect").textElement = "Incorrect Answer"; // Then set to display?
-  }
-}
-
-function updateCallback(err){
-  if(err){
-    console.log("Error: ", err);
-  }
-  else{
-    console.log("Successfully updated this flashcard.");
-  }
-}
-*/

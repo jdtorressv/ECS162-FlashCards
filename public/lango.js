@@ -1,9 +1,9 @@
 'use strict';
-//import React from 'react';
-
 // An element to go into the DOM
 
-var lango = React.createElement(
+// let cards = {};
+
+let lango = React.createElement(
 	"h1",
 	{ id: "lango" },
 	"Lango!"
@@ -39,13 +39,22 @@ function FirstInputCard() {
 	);
 }
 
+function AnswerBox() {
+        return React.createElement(
+                "div",
+                { id: "answerBox" },
+                React.createElement("textarea", { id: "answer", onKeyPress: checkCorrect })
+        );
+
+}
+
 function flashcards() {
 	return React.createElement(
 		"div",
 		{ id: "flashcards" },
 		React.createElement(FirstInputCard, null),
 		React.createElement(SecondCard, null),
-//		React.createElement(createSaveButton, null),
+		React.createElement(AnswerBox, null),
 	);
 }
 
@@ -60,10 +69,18 @@ function createSaveButton() {
 		);
 }
 
+function createNextButton() {
+	return React.createElement(
+		"div", 
+		{ id: "nextButton"}, 
+		React.createElement("button", { id: "next", onClick: nextCard }, "Next")
+		);
+}
+
 function startReviewButton() {
 	return React.createElement(
 		"button",
-		{ id: "startReview" },
+		{ id: "startReview", onClick: toStartReview },
 		"Start Review");
 }
 
@@ -75,9 +92,8 @@ var main = React.createElement(
 	null,
 	React.createElement(createLogo, null),
 	React.createElement(flashcards, null),
-//	React.createElement(FirstInputCard, null),
-//	React.createElement(SecondCard, null),
 	React.createElement(createSaveButton, null),
+	React.createElement(createNextButton, null)
 );
 
 ReactDOM.render(main, document.getElementById('root'));
@@ -87,6 +103,23 @@ ReactDOM.render(main, document.getElementById('root'));
 function checkReturn(event) {
 	if(event.charCode == 13)
 		getTranslationRequest();
+}
+
+function checkCorrect(event) {
+	if(event.charCode == 13){
+		let input = document.getElementById("answerBox").value;
+		let answer = document.getElementById("output").textContent;
+		if(input == answer){
+			// flip card and display correct and update correct
+		}
+		else {
+			// flip card and show nothing
+		}
+	}
+}
+
+function nextCard() {
+		
 }
 
 function createCORSRequest(method, url) {
@@ -139,19 +172,27 @@ function getSaveRequest() {
   xhr.send();
 }
 
-// for next part of the project
-// function getNext(){
-//
-// }
-//
-// function isCorrect() {
-//
-// }
-//
-// function getReview() {
-//
-// }
-//
-// function resetReview() {
-//
-// }
+function toStartReview() {
+	let url = "/getCards";
+	let xhr = createCORSRequest('GET', url);
+	if(!xhr){
+		alert('CORS not supported');
+	}
+	xhr.onload = function() {
+		let cards = xhr.responseJSON;
+		console.log("cards: ", cards);
+	}
+	xhr.onerror = function() {
+		alert('Error');
+		return;
+	}
+	xhr.send();
+	// shuffle cards
+	document.getElementById("textCard2").style.display = 'none';
+	document.getElementById("answerBox").style.display = 'block';
+	document.getElementById("startReview").textContent = 'Add';
+	document.getElementById("save").style.display = 'none';
+	document.getElementById("flashcards").style.flexDirection = 'column';
+	document.getElementById("next").style.display = 'block';
+	
+}

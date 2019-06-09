@@ -3,10 +3,12 @@ const sqlite3 = require("sqlite3").verbose();  // use sqlite
 const fs = require("fs"); // file system
 
 const dbFileName = "Flashcards.db";
+//const db2FileName = "Users.db"; 
 
 // makes the object that represents the database in our code
 // object that our Node program communicates with db software
 const db = new sqlite3.Database(dbFileName);  // object, not database.
+//const db2 = new sqlite3.Database(db2FileName);
 
 // Initialize table.
 // If the table already exists, causes an error.
@@ -15,9 +17,11 @@ const db = new sqlite3.Database(dbFileName);  // object, not database.
 const cmdStr = 'CREATE TABLE Flashcards (userid INTEGER, input TEXT, output TEXT, num_seen INTEGER, num_correct INTEGER)';
 db.run(cmdStr,tableCreationCallback);
 
-const userTable = 'CREATE TABLE Users (googleid INTEGER, displayname TEXT)';
+const userTable = 'CREATE TABLE Users (googleid INTEGER, firstname TEXT, lastname TEXT)';
 db.run(userTable, tableCreationCallback);
 
+
+db.close();
 // Always use the callback for database operations and print out any
 // error messages you get.
 // This database stuff is hard to debug, give yourself a fighting chance.
@@ -27,6 +31,6 @@ function tableCreationCallback(err) {
   }
   else {
     console.log("Database created");
-	  db.close();
+    //db.close();
   }
 }
