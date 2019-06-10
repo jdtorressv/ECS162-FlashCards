@@ -193,8 +193,9 @@ function checkCorrect(event) {
 }
 
 function flipCard() {
-//	document.getElementById('frontCard').style.transform = rotateY(180deg);
-//	document.getElementById('backCard').style.transform = rotateY(0deg);
+	document.getElementById('flip').onclick = function() {
+		document.getElementById('answerCard').classList.toggle('do-flip');
+	};
 }
 
 function createCORSRequest(method, url) {
@@ -269,6 +270,7 @@ function nextCard() {
 }
 
 function addBtn() {
+	document.getElementById("textCard").style.display = 'flex';
 	document.getElementById("textCard2").style.display = 'flex';
 	document.getElementById("answerBox").style.display = 'none';
 	document.getElementById("startReview").textContent = 'Start Review';
@@ -329,7 +331,7 @@ function toStartReview() {
 		alert('Error');
 		return;
 	}
-	
+
 	// shuffle cards
 	document.getElementById("textCard").style.display = 'none';
 	document.getElementById("textCard2").style.display = 'none';
@@ -339,6 +341,7 @@ function toStartReview() {
 	document.getElementById("flashcards").style.flexDirection = 'column';
 	document.getElementById("next").style.display = 'block';
 	document.getElementById("answerCard").style.display = 'flex';
+	document.getElementById("flip").style.visibility = 'visible';
 
 	xhr.send();
 }

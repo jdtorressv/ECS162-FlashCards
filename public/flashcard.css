@@ -2,6 +2,17 @@ body {
     font-family: Arial, Helvetica Neue, Helvetica, sans-serif;
 }
 
+html * {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html, body{
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
 #lango {
 	text-align: left;
 	margin-left: 13%;
@@ -70,6 +81,15 @@ body {
     vertical-align: middle;
 }
 
+.answerCardWrapper {
+  position: relative;
+  -o-perspective: 900px;
+  -webkit-perspective: 900px;
+  -ms-perspective: 900px;
+  perspective: 900px;
+  margin: 0 auto;
+}
+
 #answerCard {
   float: left;
   display:none;
@@ -82,6 +102,14 @@ body {
   height: 300px;
   align-items: center;
   justify-content: center;
+  -o-transition: all 1s ease-in-out;
+  -webkit-transition: all 1s ease-in-out;
+  -ms-transition: all 1s ease-in-out;
+  transition: all 1s ease-in-out;
+  -o-transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+  -ms-transform-style: preserve-3d;
+  transform-style: preserve-3d;
 }
 
 #frontCard {
@@ -113,14 +141,10 @@ body {
   justify-content: center;
   align-items: center;
   position: absolute;
-  -webkit-transform: perspective(600px) rotateY(180deg);
-  transform: perspective(600px) rotateY(180deg);
-  background: #FC0;
-  border-radius: 5px;
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-  transition: -webkit-transform .5s linear 0s;
-  transition: transform .5s linear 0s;
+  -o-transform: rotateY(180deg);
+  -webkit-transform: rotateY(180deg);
+  -ms-transform: rotateY(180deg);
+  transform: rotateY(180deg);
 }
 
 #answerBox {
@@ -207,9 +231,41 @@ body {
   margin-top: 3%;
   margin-right: 3%;
   position: absolute;
-  top: 5;
-  right: 5;
+  top: 5px;
+  right: 5px;
+  height: 30px;
+  width: 60px;
+  background: white;
+  cursor: pointer;
+  visibility: hidden;
+  font-family: 'Open Sans', sans-serif;
+  font-weight: 600;
+  font-size: .7em;
+  padding: 0;
+  border: 1px solid black;
 }
+
+#frontCard, #backCard{
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  -o-backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  -ms-backface-visibility: hidden;
+  backface-visibility: hidden;
+  z-index: 2;
+  -webkit-box-shadow: 5px 6px 32px 2px rgba(133,133,133,0.71);
+  -moz-box-shadow: 5px 6px 32px 2px rgba(133,133,133,0.71);
+  box-shadow: 5px 6px 32px 2px rgba(133,133,133,0.71);
+}
+
+.do-flip {
+  -o-transform: rotateY(-180deg);
+  -webkit-transform: rotateY(-180deg);
+  -ms-transform: rotateY(-180deg);
+  transform: rotateY(-180deg);
+}
+
 
 main {
     display: flex;
@@ -218,6 +274,7 @@ main {
     justify-content: flex-start;
     width:100vw;
     height:100vh;
+    padding-bottom: 8%;
 }
 
 #logo{
